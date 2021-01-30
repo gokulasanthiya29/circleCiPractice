@@ -16,4 +16,31 @@ jobs:
           root: .
           paths:
             - .
+  
+  apply:
+  docker:
+    - image: hashicorp/terraform:light
+  steps:
+    - attach_workspace:
+        at: .
+    - run:
+        name: terraform
+        command: |
+          terraform apply -auto-approve tfapply
+    - persist_to_workspace:
+        root: .
+        paths:
+          - .
 
+workflows:
+  version: 2
+  plan_approve_apply:
+    jobs:
+      - plan-apply
+      - hold-apply:
+          type: approval
+          requires:
+            - plan-apply
+      - apply:
+          requires:
+            - hold-apply
